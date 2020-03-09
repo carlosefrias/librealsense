@@ -12,7 +12,7 @@ namespace Intel.RealSense
 
     [DebuggerTypeProxy(typeof(OptionsListDebugView))]
     [DebuggerDisplay("Count = {Count}")]
-    internal sealed class OptionsList : Base.Object, IOptionsContainer, ICollection
+    public sealed class OptionsList : Base.Object, IOptionsContainer, ICollection
     {
         internal sealed class OptionsListDebugView
         {
@@ -64,7 +64,7 @@ namespace Intel.RealSense
             return NativeMethods.rs2_get_options_list(options, out error);
         }
 
-        internal OptionsList(IntPtr options)
+        public OptionsList(IntPtr options)
             : base(Create(options), NativeMethods.rs2_delete_options_list)
         {
             this.options = options;

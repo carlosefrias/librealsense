@@ -4,11 +4,6 @@
 namespace Intel.RealSense
 {
     using System;
-    using System.Collections;
-    using System.Collections.Generic;
-    using System.Collections.ObjectModel;
-    using System.Diagnostics;
-    using System.Linq;
     using System.Runtime.InteropServices;
 
     public class PoseSensor : Sensor
@@ -28,12 +23,12 @@ namespace Intel.RealSense
         public byte[] ExportLocalizationMap()
         {
             object error;
-            IntPtr rawDataBuffer = NativeMethods.rs2_export_localization_map(Handle, out error);
+            var rawDataBuffer = NativeMethods.rs2_export_localization_map(Handle, out error);
 
-            IntPtr start = NativeMethods.rs2_get_raw_data(rawDataBuffer, out error);
-            int size = NativeMethods.rs2_get_raw_data_size(rawDataBuffer, out error);
+            var start = NativeMethods.rs2_get_raw_data(rawDataBuffer, out error);
+            var size = NativeMethods.rs2_get_raw_data_size(rawDataBuffer, out error);
 
-            byte[] managedBytes = new byte[size];
+            var managedBytes = new byte[size];
             Marshal.Copy(start, managedBytes, 0, size);
             NativeMethods.rs2_delete_raw_data(rawDataBuffer);
 
@@ -42,14 +37,14 @@ namespace Intel.RealSense
 
         public bool ImportLocalizationMap(byte[] mapBytes)
         {
-            IntPtr nativeBytes = IntPtr.Zero;
+            var nativeBytes = IntPtr.Zero;
             try
             {
                 nativeBytes = Marshal.AllocHGlobal(mapBytes.Length);
                 Marshal.Copy(mapBytes, 0, nativeBytes, mapBytes.Length);
                 object error;
                 var res = NativeMethods.rs2_import_localization_map(Handle, nativeBytes, (uint)mapBytes.Length, out error);
-                return !(res == 0);
+                return res != 0;
             }
             finally
             {
@@ -61,14 +56,45 @@ namespace Intel.RealSense
         {
             object error;
             var res = NativeMethods.rs2_set_static_node(Handle, guid, position, rotation, out error);
-            return !(res == 0);
+            return res != 0;
         }
 
         public bool GetStaticNode(string guid, out Math.Vector position, out Math.Quaternion rotation)
         {
             object error;
             var res = NativeMethods.rs2_get_static_node(Handle, guid, out position, out rotation, out error);
-            return !(res == 0);
+            return res != 0;
+        }
+
+        public void DisableReLocalization()
+        {
+            object outObj;
+            NativeMethods.rs2_set_option(Handle, Option.EnableRelocalization, 0.0f, out outObj);
+        }
+
+        public void EnableReLocalization()
+        {
+            object outObj;
+            NativeMethods.rs2_set_option(Handle, Option.EnableRelocalization, 1.0f, out outObj);
+        }
+
+        public float GetRelocalizationValue()
+        {
+            object outObj;
+            return NativeMethods.rs2_get_option(Handle, Option.EnableRelocalization, out outObj);
+        }
+
+        public float GetMotionModuleTemperature()
+        {
+            object outObj;
+            return NativeMethods.rs2_get_option(Handle, Option.MotionModuleTemperature, out outObj);
+        }
+
+        public OptionsList GetOptionsList()
+        {
+            object errorObj;
+            var ptr = NativeMethods.rs2_get_options_list(Handle, out errorObj);
+            return new OptionsList(ptr);
         }
     }
 }
